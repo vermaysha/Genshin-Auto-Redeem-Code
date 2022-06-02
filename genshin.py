@@ -152,14 +152,18 @@ for no in range(len(cookies)):
 
         sleep(5)
 
+        try:
+            dt = datetime.now(timezone.utc)
+            cursor.execute("INSERT INTO redeemed_code (uid, code, redeemed_at) VALUES (%s, %s, %s)", (uid, code, dt,))
+        except psycopg2.Error as e:
+            pass
+        finally:
+            conn.commit()
+        
         if (res.get('retcode', -1) != 0):
             logging.error(f'Code \'{code}\' has been claimed')
             fail +=1
             continue
-
-        dt = datetime.now(timezone.utc)
-        cursor.execute("INSERT INTO redeemed_code (uid, code, redeemed_at) VALUES (%s, %s, %s)", (uid, code, dt,))
-        conn.commit()
     
         webhook = os.environ.get('DISCORD_WEBHOOK','')
         if (webhook != ''):
